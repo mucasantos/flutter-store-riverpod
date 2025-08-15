@@ -1,34 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:riverpod_store/features/products/data/product_repository.dart';
-import 'package:riverpod_store/features/products/presentation/widgets/product_tile.dart';
+import 'package:riverpod_store/features/products/presentation/providers/product_providers.dart';
+import 'package:riverpod_store/features/products/presentation/widgets/product_card.dart';
 
 class ProductList extends ConsumerWidget {
   const ProductList({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final productAsync = ref.watch(fetchProductsProvider);
-    return productAsync.when(
-      data: (products) => GridView.custom(
-        gridDelegate: SliverQuiltedGridDelegate(
-          crossAxisCount: 2,
-          repeatPattern: QuiltedGridRepeatPattern.inverted,
-          pattern: [const QuiltedGridTile(1, 1)],
-        ),
-        childrenDelegate: SliverChildBuilderDelegate((context, index) {
-          final product = products[index];
-          return ProductTile(
-            productId: product.id,
-            title: product.title,
-            price: product.price.toString(),
-            image: product.image,
-          );
-        }),
-      ),
+    final productsAsync = ref.watch(productsProvider);
+    
+    return productsAsync.when(
+      data: (products) {
+        return GridView.builder(
+          padding: const EdgeInsets.all(8.0),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.75,
+            crossAxisSpacing: 8.0,
+            mainAxisSpacing: 8.0,
+          ),
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            final product = products[index];
+            return ProductTile(productId: product.id);
+          },
+        );
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, st) => Center(child: Text(e.toString())),
+      error: (error, stack) => Center(child: Text('Error: $error')),
     );
   }
 }
